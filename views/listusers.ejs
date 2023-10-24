@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Welcome to <%=shopName%></title>
+    <link rel="stylesheet"  type="text/css" href="/main.css" />
+  </head>
+  <body>
+    <h1><%=shopName%> Shop</h1>
+    <h2>User List:</h2>
+    <ul>
+      <% if (users && users.length > 0) { %>
+        <% users.forEach(function(user) { %>
+          <li><b>Name: </b><%= user.first %> <%=user.last %> <br> <b>Username: </b><%=user.username %> <br> <b>Email: </b><%=user.email %></li>
+        <% }) %>
+      <% } else { %>
+        <li>No users found.</li>
+      <% } %>
+    </ul>
+  </body>
+</html>
