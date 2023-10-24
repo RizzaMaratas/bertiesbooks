@@ -128,7 +128,7 @@ module.exports = function(app, shopData) {
             console.log(newData);
 
             // render the page only if there's no error
-            res.render("listUsers.ejs", newData);
+            res.render("listusers.ejs", newData);
         });
     });
 
