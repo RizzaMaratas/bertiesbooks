@@ -1,8 +1,18 @@
 module.exports = function(app, shopData) {
 
+    // redirect to login if user is not authenticated
+    const redirectLogin = (req, res, next) => {
+        if (!req.session.userId) {
+            res.redirect('./login')
+        } else {
+            next();
+        }
+    }
+
+    // import bcrypt for password hashing
     const bcrypt = require('bcrypt');
 
-    // Handle our routes
+    // handle our routes
     app.get('/', function(req, res) {
         res.render('index.ejs', shopData)
     });
@@ -43,7 +53,7 @@ module.exports = function(app, shopData) {
                 return console.error(err.message);
             }
 
-            // Check if the email or username already exists
+            // check if the email or username already exists
             let checkExistingQuery = "SELECT * FROM userDetails WHERE email = ? OR username = ?";
             let checkExistingValues = [req.body.email, req.body.username];
 
@@ -53,7 +63,7 @@ module.exports = function(app, shopData) {
                 }
 
                 if (results.length > 0) {
-                    // Email or username already exists
+                    // email or username already exists
                     let errorMessage = '';
                     if (results.some(result => result.email === req.body.email)) {
                         errorMessage += 'Email already exists. ';
@@ -61,14 +71,14 @@ module.exports = function(app, shopData) {
                     if (results.some(result => result.username === req.body.username)) {
                         errorMessage += 'Username already exists. ';
                     }
-                    // Send separate error messages for email and username conflicts
+                    // send separate error messages for email and username conflicts
                     if (errorMessage.includes('Email') && errorMessage.includes('Username')) {
                         res.send('Email and username already exist. Please choose different ones.');
                     } else {
                         res.send(errorMessage + 'Please choose another one.');
                     }
                 } else {
-                    // Insert the new user if email and username are unique
+                    // insert the new user if email and username are unique
                     let insertQuery = "INSERT INTO userDetails (username, first, last, email, hashedPassword) VALUES (?, ?, ?, ?, ?)";
                     let newUser = [req.body.username, req.body.first, req.body.last, req.body.email, hashedPassword];
 
@@ -86,7 +96,7 @@ module.exports = function(app, shopData) {
         });
     });
 
-    app.get('/list', function(req, res) {
+    app.get('/list', redirectLogin, function(req, res) {
         let sqlquery = "SELECT * FROM books"; // query database to get all the books
         // execute sql query
         db.query(sqlquery, (err, result) => {
@@ -101,13 +111,13 @@ module.exports = function(app, shopData) {
         });
     });
 
-    app.get('/listusers', function(req, res) {
+    app.get('/listusers', redirectLogin, function(req, res) {
         let sqlquery = "SELECT first,last,username,email FROM userDetails";
 
         // execute sql query
         db.query(sqlquery, (err, result) => {
             if (err) {
-                // If there's an error, send an error response or redirect
+                // send an error response or redirect if there's an error
                 console.error(err);
                 return res.status(500).send("Internal Server Error");
             }
@@ -117,12 +127,12 @@ module.exports = function(app, shopData) {
             });
             console.log(newData);
 
-            // Render the page only if there's no error
+            // render the page only if there's no error
             res.render("listUsers.ejs", newData);
         });
     });
 
-    app.get('/addbook', function(req, res) {
+    app.get('/addbook', redirectLogin, function(req, res) {
         res.render('addbook.ejs', shopData);
     });
 
@@ -181,8 +191,10 @@ module.exports = function(app, shopData) {
                         console.error(err);
                         return res.status(500).send("Error. Please try again later.");
                     } else if (result == true) {
+                        // save user session here, when login is successful
+                        req.session.userId = req.body.username;
+
                         // passwords match, user is logged in
-                        // Send HTML response with "Return to Homepage" button
                         res.send(`
                             <p>Login successful!</p>
                             <a href="/">Return to Homepage</a>
@@ -199,7 +211,16 @@ module.exports = function(app, shopData) {
         });
     });
 
-    app.get('/deleteuser', function(req, res) {
+    app.get('/logout', redirectLogin, (req, res) => {
+        req.session.destroy(err => {
+            if (err) {
+                return res.redirect('./')
+            }
+            res.send('<p>You are now logged out. <a href=' + './' + '>Return to Homepage</a>');
+        });
+    });
+
+    app.get('/deleteuser', redirectLogin, function(req, res) {
         res.render('deleteuser.ejs', {
             message: ''
         }); // passing an empty message initially
