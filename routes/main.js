@@ -198,4 +198,35 @@ module.exports = function(app, shopData) {
             }
         });
     });
+
+    app.get('/deleteuser', function(req, res) {
+        res.render('deleteuser.ejs', {
+            message: ''
+        }); // passing an empty message initially
+    });
+
+    app.post('/deleteuser', function(req, res) {
+        const usernameToDelete = req.body.username;
+
+        // perform the delete operation in the database
+        let deleteQuery = "DELETE FROM userDetails WHERE username = ?";
+        db.query(deleteQuery, [usernameToDelete], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Error deleting user. Please try again later.");
+            }
+
+            if (result.affectedRows > 0) {
+                // user deleted successfully
+                res.render('deleteUser.ejs', {
+                    message: `User '${usernameToDelete}' deleted successfully.`
+                });
+            } else {
+                // no user found with the provided username
+                res.render('deleteUser.ejs', {
+                    message: `No user found with the username '${usernameToDelete}'.`
+                });
+            }
+        });
+    });
 }

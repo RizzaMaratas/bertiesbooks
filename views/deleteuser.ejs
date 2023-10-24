@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Delete Your Account</title>
+  <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+  <h1>Delete Your Account</h1>
+  <form action="/deleteuser" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <button type="submit">Delete User</button>
+</form>
+<p><%= message %></p>
+<a href="/">Return to Homepage</a>
+</body>
+</html>
